@@ -5,25 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Web App 登录验证 login </title>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-    <!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script> -->
+    <!-- <script>eruda.init();</script> -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body>
     <div class="container">
-        <h1>fdasfdsa</h1>
+        <h1>123321</h1>
     </div>
 
     <script>
         if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.expand();
             console.log('tg内打开')
             console.log(window.Telegram.WebApp.initData)
             console.log(window.Telegram.WebApp.initDataUnsafe)
-            window.isTgClient = true
-            window.token = window.Telegram.WebApp.initData
-            window.userInfo = window.Telegram.WebApp.initDataUnsafe
+
+
+
+
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.setHeaderColor('#00FF00');
+            window.Telegram.WebApp.setBackgroundColor('#00FFFF');
+            window.Telegram.WebApp.enableDebug();
+            Telegram.WebApp.HapticFeedback.impactOccurred('light');
+
         } else {
             console.log('非tg内打开')
         }
