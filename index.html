@@ -289,17 +289,233 @@
         </footer>
     </div>
 
-    <script type="text/javascript">
-        (function () {
-            // 判断是否在tg打开
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-                console.log('tg内打开')
-                console.log(window.Telegram.WebApp.initData)
-                console.log(window.Telegram.WebApp.initDataUnsafe)
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const envEl = document.getElementById('environment');
+            const statusEl = document.getElementById('webapp-status');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            const loading = document.getElementById('loading');
+            const userInfo = document.getElementById('user-info');
+            const initdataInfo = document.getElementById('initdata-info');
+            const initBtn = document.getElementById('init-btn');
+            const loginBtn = document.getElementById('login-btn');
+            const closeBtn = document.getElementById('close-btn');
+            const verifyBtn = document.getElementById('verify-btn');
+            const loginSrvBtn = document.getElementById('login-svr-btn')
+
+            let webApp = null;
+            let initData = null;
+
+            // 检测环境
+            if (window.Telegram && window.Telegram.WebApp) {
+                envEl.textContent = "Telegram Web App 环境";
+                statusEl.textContent = "SDK 已加载";
+                webApp = window.Telegram.WebApp;
+                initBtn.disabled = true;
             } else {
-                console.log('非tg打开')
+                envEl.textContent = "普通浏览器环境";
+                statusEl.textContent = "Telegram SDK 不可用";
+                loginBtn.disabled = true;
+                closeBtn.disabled = true;
+                verifyBtn.disabled = true;
+                showError('此功能需要在Telegram客户端内作为Web App打开');
             }
-        })();
+
+            // 初始化按钮
+            initBtn.addEventListener('click', function () {
+                if (webApp) {
+                    webApp.ready();
+                    statusEl.textContent = "Web App 已初始化";
+                    showSuccess('Web App 初始化成功');
+                    initBtn.disabled = true;
+                    loginBtn.disabled = false;
+                }
+            });
+
+            // 获取用户信息按钮
+            loginBtn.addEventListener('click', function () {
+                if (!webApp) {
+                    showError('Telegram WebApp SDK 不可用');
+                    return;
+                }
+
+                loading.style.display = 'block';
+
+                try {
+                    // 获取 initData
+                    initData = webApp.initData || webApp.initDataUnsafe;
+
+                    if (!initData) {
+                        showError('无法获取 initData');
+                        loading.style.display = 'none';
+                        return;
+                    }
+
+                    // 显示用户信息
+                    displayUserInfo();
+
+                    // 显示 initData
+                    displayInitData();
+
+                    loading.style.display = 'none';
+                    showSuccess('用户信息获取成功');
+                } catch (e) {
+                    showError('获取用户信息时出错: ' + e.message);
+                    loading.style.display = 'none';
+                }
+            });
+
+            // 关闭按钮
+            closeBtn.addEventListener('click', function () {
+                if (webApp) {
+                    webApp.close();
+                }
+            });
+
+            // 验证按钮
+            verifyBtn.addEventListener('click', function () {
+                if (!initData) {
+                    showError('请先获取用户信息');
+                    return;
+                }
+
+                loading.style.display = 'block';
+
+                // 模拟后端验证（实际应用中应发送到后端）
+                setTimeout(() => {
+                    const isValid = true; // 这里应该实际验证
+
+                    if (isValid) {
+                        showSuccess('签名验证成功！数据完整且有效');
+                    } else {
+                        showError('签名验证失败！数据可能被篡改');
+                    }
+
+                    loading.style.display = 'none';
+                }, 1000);
+            });
+
+            loginSrvBtn.addEventListener('click', verifyTelegramLogin)
+
+            // 显示用户信息
+            function displayUserInfo () {
+                const user = webApp.initDataUnsafe.user;
+
+                if (!user) {
+                    showError('无法获取用户信息');
+                    return;
+                }
+
+                document.getElementById('user-id').textContent = user.id || '未知';
+                document.getElementById('username').textContent = '@' + (user.username || '未设置');
+                document.getElementById('fullname').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || '未提供';
+                document.getElementById('language').textContent = user.language_code || '未知';
+
+                // 设置授权时间
+                const authDate = new Date(webApp.initDataUnsafe.auth_date * 1000);
+                document.getElementById('auth-date').textContent =
+                    authDate.toLocaleString() + ` (${webApp.initDataUnsafe.auth_date})`;
+
+                userInfo.style.display = 'block';
+            }
+
+            // 显示 initData
+            function displayInitData () {
+                // 显示原始数据
+                document.getElementById('raw-initdata').textContent =
+                    typeof initData === 'string' ? initData : JSON.stringify(initData, null, 2);
+
+                // 解析并显示数据
+                let parsedData = {};
+
+                if (typeof initData === 'string') {
+                    // 解析查询字符串
+                    const params = new URLSearchParams(initData);
+                    parsedData = Object.fromEntries(params.entries());
+
+                    // 尝试解析JSON字段
+                    try {
+                        if (parsedData.user) parsedData.user = JSON.parse(parsedData.user);
+                        if (parsedData.chat) parsedData.chat = JSON.parse(parsedData.chat);
+                        // if (parsedData.chat_type) parsedData.chat_type = JSON.parse(parsedData.chat_type);
+                    } catch (e) {
+                        console.error('解析JSON字段失败', e);
+                    }
+                } else {
+                    parsedData = initData;
+                }
+
+                document.getElementById('parsed-initdata').textContent =
+                    JSON.stringify(parsedData, null, 2);
+
+                initdataInfo.style.display = 'block';
+            }
+
+            // 显示错误消息
+            function showError (message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+
+            // 显示成功消息
+            function showSuccess (message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+            }
+
+            // 验证Telegram登录
+            function verifyTelegramLogin () {
+                // 显示加载状态
+                loading.style.display = 'block';
+                console.log("发送请求：", JSON.stringify({ initData: initData }))
+                // 发送验证请求到后端
+                fetch('/api/telegram-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ initData: initData })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("登录数据", data)
+                        // 隐藏加载状态
+                        loading.style.display = 'none';
+
+                        if (data.success) {
+                            // 显示成功消息
+                            showSuccess('登录成功！');
+
+
+                            console.log("登录成功", data)
+                        } else {
+                            // 显示错误消息
+                            showError(data.error || '登录失败，请重试');
+                        }
+                    })
+                    .catch(error => {
+                        // 隐藏加载状态
+                        loading.style.display = 'none';
+                        console.log("登录失败", error)
+
+                        // 显示错误消息
+                        showError('网络错误: ' + error.message);
+                    })
+                    .finally(() => {
+                        console.log("请求结束")
+                    })
+            }
+
+            // 如果已经在Telegram环境中，自动初始化
+            if (webApp) {
+                webApp.ready();
+                statusEl.textContent = "Web App 已自动初始化";
+                initBtn.disabled = true;
+            }
+        });
     </script>
 </body>
 
