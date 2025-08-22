@@ -18,7 +18,7 @@ const messaging = getMessaging(app);
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
     const basePath = window.location.pathname.replace(/\/$/, ''); // 去掉末尾斜杠
-    navigator.serviceWorker.register(`${basePath}/firebase-messaging-sw.js`)
+    navigator.serviceWorker.register(`${basePath}/firebase-messaging-sw.js`, {scope: '/tg-test/'})
         .then(reg => console.log('Service Worker 注册成功', reg))
         .catch(err => console.error('Service Worker 注册失败', err));
 }
