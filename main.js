@@ -17,7 +17,7 @@ const messaging = getMessaging(app);
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+    navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('Service Worker 注册成功', reg))
         .catch(err => console.error('Service Worker 注册失败', err));
 }
