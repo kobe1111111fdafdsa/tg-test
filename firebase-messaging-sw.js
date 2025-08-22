@@ -16,7 +16,7 @@ const messaging = firebase.messaging();
 
 // 后台消息监听
 messaging.onBackgroundMessage(function (payload) {
-    console.log('[firebase-messaging-sw.js] 收到后台消息:', payload);
+    console.log('收到后台消息:', payload);
 
     const notificationTitle = payload.notification?.title || '新消息';
     const notificationOptions = {

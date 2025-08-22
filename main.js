@@ -14,11 +14,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
+let registration
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker 注册成功', reg))
+    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+        .then(reg => {
+            registration = reg
+            console.log('Service Worker 注册成功', reg)
+        })
         .catch(err => console.error('Service Worker 注册失败', err));
 }
 
@@ -27,7 +31,10 @@ document.getElementById('request-permission').addEventListener('click', async ()
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            const token = await getToken(messaging, { vapidKey: "BBltC3GkfvNkDNVCeZ_PDuQtlJEiSFAAk2t8gDjF2-orAL080sCfS5xqFromS3VGKrJ__GOfvNbKVZv1Nseddug" });
+            const token = await getToken(messaging, {
+                vapidKey: "BBltC3GkfvNkDNVCeZ_PDuQtlJEiSFAAk2t8gDjF2-orAL080sCfS5xqFromS3VGKrJ__GOfvNbKVZv1Nseddug",
+                serviceWorkerRegistration: registration
+            });
             console.log('FCM Token:', token);
             alert('通知权限已允许，token 已打印到控制台');
         } else {
