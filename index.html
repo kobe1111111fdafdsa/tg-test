@@ -1,38 +1,39 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Web App 登录验证 login </title>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script> -->
-    <!-- <script>eruda.init();</script> -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>PWA + FCM</title>
+    <link rel="manifest" href="manifest.webmanifest">
 </head>
 
 <body>
-    <div class="container">
-        <h1>111111111</h1>
+    <h1 style="text-align:center; margin-top:50px;">纯前端 PWA + Firebase 消息推送</h1>
+    <p style="text-align:center;">请允许通知以接收消息</p>
+    <button id="request-permission" style="display:block; margin:20px auto;">获取通知权限</button>
+
+    <script type="module" src="main.js"></script>
+
+
+    <div id="console"
+        style="position:fixed;bottom:0;width:100%;height:150px;overflow:auto;background:#000;color:#0f0;font-size:12px;">
     </div>
 
     <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            console.log('tg内打开')
-            console.log(window.Telegram.WebApp.initData)
-            console.log(window.Telegram.WebApp.initDataUnsafe)
-
-
-
-
-            // window.Telegram.WebApp.expand();
-            window.Telegram.WebApp.setHeaderColor('#00FF00');
-            window.Telegram.WebApp.setBackgroundColor('#00FFFF');
-            window.Telegram.WebApp.enableDebug();
-            Telegram.WebApp.HapticFeedback.impactOccurred('light');
-
-        } else {
-            console.log('非tg内打开')
-        }
+        (function () {
+            const oldLog = console.log;
+            console.log = function (...args) {
+                oldLog.apply(console, args);
+                const c = document.getElementById('console');
+                const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+                const div = document.createElement('div');
+                div.textContent = msg;
+                c.appendChild(div);
+                c.scrollTop = c.scrollHeight;
+            }
+        })();
+        console.log('控制台已启用');
     </script>
 </body>
 
